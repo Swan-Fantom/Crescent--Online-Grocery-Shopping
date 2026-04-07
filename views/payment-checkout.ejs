@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Crescent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('includes/navbar') %>
+
+    <div class="container mt-5">
+        <h2>💳 Checkout</h2>
+
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <h5>📦 Order Summary</h5>
+                    <hr>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% let cartSubtotal = 0; %>
+                                <% if (cart && cart.length > 0) { %>
+                                    <% cart.forEach(item => { %>
+                                        <% const itemTotal = parseFloat(item.price) * parseInt(item.quantity); %>
+                                        <% cartSubtotal += itemTotal; %>
+                                        <tr>
+                                            <td><strong><%= item.name %></strong></td>
+                                            <td><span class="badge bg-primary"><%= item.quantity %></span></td>
+                                            <td>₹<%= parseFloat(item.price).toFixed(2) %></td>
+                                            <td>₹<%= itemTotal.toFixed(2) %></td>
+                                        </tr>
+                                    <% }); %>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-light p-3 rounded mt-3">
+                        <h6>📍 Delivery Address:</h6>
+                        <p class="mb-0"><strong><%= deliveryAddress %></strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card p-4 sticky-top" style="top: 20px;">
+                    <h5>💰 Price Breakdown</h5>
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹<%= subtotal.toFixed(2) %></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery Fee:</span>
+                        <span class="text-success">₹50.00</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Discount:</span>
+                        <span class="text-danger">₹0.00</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-4">
+                        <h6 class="mb-0"><strong>Total Amount:</strong></h6>
+                        <h6 class="mb-0 text-success"><strong>₹<%= totalAmount.toFixed(2) %></strong></h6>
+                    </div>
+
+                    <button class="btn btn-success btn-lg w-100 mb-2" id="paymentBtn" onclick="initiatePayment()">
+                        💳 Complete Payment
+                    </button>
+
+                    <a href="/cart" class="btn btn-outline-secondary w-100">Back to Cart</a>
+
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">
+                            <strong>✅ Safe & Secure:</strong> Your payment is protected
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('includes/footer') %>
+
+    <script>
+        // Store data as proper variables
+        let cartData = [];
+        let deliveryAddressData = '<%= deliveryAddress %>';
+        let totalAmountData = '<%= totalAmount %>';
+
+        // Manually create cart array from page
+        '<% if (cart && cart.length > 0) { %>'
+            '<% cart.forEach(item => { %>'
+                cartData.push({
+                    productId: '<%= item.productId %>',
+                    name: '<%= item.name %>',
+                    price: '<%= parseFloat(item.price) %>',
+                    quantity: '<%= parseInt(item.quantity) %>',
+                    image: '<%= item.image %>'
+                });
+            '<% }); %>'
+        '<% } %>'
+
+        console.log('✅ Cart data initialized:', cartData);
+        console.log('✅ Delivery address:', deliveryAddressData);
+        console.log('✅ Total amount:', totalAmountData);
+
+        async function initiatePayment() {
+            try {
+                console.log('🔄 Starting payment process...');
+                console.log('Cart data type:', typeof cartData);
+                console.log('Is array?:', Array.isArray(cartData));
+                console.log('Cart length:', cartData.length);
+                console.log('Cart content:', cartData);
+                
+                // Validate
+                if (!cartData || !Array.isArray(cartData) || cartData.length === 0) {
+                    alert('❌ Error: Cart is empty or invalid');
+                    console.error('Cart validation failed');
+                    return;
+                }
+
+                if (!deliveryAddressData || deliveryAddressData.trim().length === 0) {
+                    alert('❌ Error: Delivery address is missing');
+                    return;
+                }
+
+                // Show loading
+                const btn = document.getElementById('paymentBtn');
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Processing...';
+
+                console.log('📤 Sending request with cart:', JSON.stringify(cartData));
+
+                // Create order on backend
+                const createResponse = await fetch('/payment/create-order', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        cart: cartData,
+                        deliveryAddress: deliveryAddressData
+                    })
+                });
+
+                const orderData = await createResponse.json();
+                console.log('📥 Order response:', orderData);
+
+                if (!orderData.success) {
+                    alert('❌ Error: ' + orderData.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '💳 Complete Payment';
+                    console.error('Order creation failed:', orderData);
+                    return;
+                }
+
+                console.log('✅ Order created:', orderData.orderNumber);
+
+                // Simulate payment processing (2 second delay)
+                setTimeout(async () => {
+                    try {
+                        console.log('🔄 Verifying payment for order:', orderData.orderId);
+
+                        // Verify payment
+                        const verifyResponse = await fetch('/payment/verify-payment', {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                orderId: orderData.orderId,
+                                paymentMethod: 'card'
+                            })
+                        });
+
+                        const verifyData = await verifyResponse.json();
+                        console.log('✅ Verification response:', verifyData);
+
+                        if (verifyData.success) {
+                            console.log('✅ Payment successful!');
+                            // Payment successful
+                            window.location.href = `/payment/payment-success/${orderData.orderId}`;
+                        } else {
+                            console.log('❌ Payment verification failed:', verifyData);
+                            alert('❌ Payment failed: ' + verifyData.message);
+                            window.location.href = `/payment/payment-failed/${orderData.orderId}`;
+                        }
+                    } catch (err) {
+                        console.error('❌ Verification error:', err);
+                        alert('❌ Error verifying payment: ' + err.message);
+                        btn.disabled = false;
+                        btn.innerHTML = '💳 Complete Payment';
+                    }
+                }, 2000);
+
+            } catch (err) {
+                console.error('❌ Payment error:', err);
+                alert('❌ Error: ' + err.message);
+                const btn = document.getElementById('paymentBtn');
+                btn.disabled = false;
+                btn.innerHTML = '💳 Complete Payment';
+            }
+        }
+    </script>
+</body>
+</html>

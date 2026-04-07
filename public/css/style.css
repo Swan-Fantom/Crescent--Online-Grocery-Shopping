@@ -1,0 +1,124 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Navbar */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Cards */
+.product-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #e0e0e0;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.product-card img {
+    height: 250px;
+    object-fit: cover;
+}
+
+/* Features */
+.feature-box {
+    transition: all 0.3s;
+}
+
+.feature-box:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .product-card img {
+        height: 180px;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+
+    .container {
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .row {
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+    }
+
+    .col-md-3, .col-md-4, .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+        padding: 5px;
+    }
+
+    .jumbotron {
+        padding: 2rem !important;
+    }
+
+    .jumbotron h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Cart */
+.cart-summary {
+    position: sticky;
+    top: 20px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 5px;
+    font-weight: 500;
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+/* Footer */
+footer {
+    margin-top: 5rem;
+}
+
+/* Status badges */
+.badge {
+    padding: 0.5rem 1rem;
+}
+
+/* Order status */
+.order-status-pending {
+    color: #ffc107;
+}
+
+.order-status-delivered {
+    color: #28a745;
+}
+
+.order-status-cancelled {
+    color: #dc3545;
+}

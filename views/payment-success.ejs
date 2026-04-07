@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Crescent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('includes/navbar') %>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card text-center p-5 shadow-lg border-success">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                    <h2 class="text-success mb-3">Payment Successful!</h2>
+                    
+                    <div class="alert alert-success">
+                        <h5>Order Confirmed</h5>
+                        <p class="lead mb-0">Order #<%= order.orderNumber %></p>
+                    </div>
+
+                    <div class="bg-light p-4 rounded mb-4">
+                        <h6 class="mb-3">Order Details</h6>
+                        <div class="text-start">
+                            <p class="mb-2">
+                                <strong>Total Amount:</strong> 
+                                <span class="float-end text-success">₹<%= order.totalAmount.toFixed(2) %></span>
+                            </p>
+                            <p class="mb-2">
+                                <strong>Payment Status:</strong>
+                                <span class="float-end badge bg-success">✓ Paid</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong>Order Status:</strong>
+                                <span class="float-end badge bg-info">Confirmed</span>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Delivery:</strong>
+                                <span class="float-end text-muted">10 minutes</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6>📍 Delivery Address</h6>
+                        <p class="text-muted mb-0"><%= order.deliveryAddress %></p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="mb-3">📦 Items Ordered (<%= order.items.length %>)</h6>
+                        <% order.items.forEach(item => { %>
+                            <p class="text-muted mb-1">
+                                <% if (item.product) { %>
+                                    <%= item.product.name %> × <%= item.quantity %>
+                                <% } else { %>
+                                    Product × <%= item.quantity %>
+                                <% } %>
+                            </p>
+                        <% }); %>
+                    </div>
+
+                    <div class="alert alert-info mb-4">
+                        <p>🚚 Your order will be delivered within 10 minutes!</p>
+                        <p class="mb-0">You'll receive a notification when your delivery partner is assigned.</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="/orders/<%= order._id %>" class="btn btn-info btn-lg">
+                            📋 View Order Details
+                        </a>
+                        <a href="/products" class="btn btn-success btn-lg">
+                            🛒 Continue Shopping
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary">🏠 Go to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('includes/footer') %>
+</body>
+</html>

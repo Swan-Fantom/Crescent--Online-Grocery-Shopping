@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product.name %> - Crescent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .product-image-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .product-image-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .rating-display {
+            font-size: 1.2rem;
+            color: #ffc107;
+            margin: 10px 0;
+        }
+
+        .stars {
+            display: inline-block;
+            color: #ffc107;
+        }
+
+        .review-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .review-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .reviewer-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .review-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .review-comment {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .form-rating {
+            font-size: 2rem;
+        }
+
+        .form-rating .star {
+            cursor: pointer;
+            color: #ddd;
+            margin-right: 5px;
+            transition: color 0.2s;
+        }
+
+        .form-rating .star.active {
+            color: #ffc107;
+        }
+
+        .review-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+
+        .no-reviews {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
+
+        .edit-delete-btn {
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <%- include('includes/navbar') %>
+
+    <div class="container mt-5 mb-5">
+        <!-- Product Details Section -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="product-image-container">
+                    <img src="<%= product.image %>" class="img-fluid rounded" alt="<%= product.name %>" 
+                         onerror="this.src='https://via.placeholder.com/400x400?text=Product'">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2><%= product.name %></h2>
+                <p class="text-muted"><%= product.description %></p>
+                
+                <!-- Rating Display -->
+                <div class="rating-display">
+                    <div class="stars">
+                        <% for (let i = 0; i < 5; i++) { %>
+                            <% if (i < Math.round(product.rating)) { %>
+                                <i class="fas fa-star"></i>
+                            <% } else { %>
+                                <i class="far fa-star"></i>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <span class="ms-2"><strong><%= (product.rating || 0).toFixed(1) %></strong></span>
+                    <span class="text-muted">(<%= product.reviewCount || 0 %> reviews)</span>
+                </div>
+                
+                <h4 class="text-success mt-3">₹<%= product.price %></h4>
+                <p>Category: <strong><%= product.category %></strong></p>
+                <p>Stock: <strong><%= product.stock %> units</strong></p>
+
+                <% if (product.vendor) { %>
+                    <p>Vendor: <strong><%= product.vendor.businessName %></strong></p>
+                    <p class="text-info">⭐ Vendor Rating: <%= (product.vendor.rating || 0).toFixed(1) %></p>
+                <% } %>
+
+                <div class="mt-4">
+                    <button class="btn btn-success btn-lg" onclick="addToCart('<%= product._id %>')">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <a href="/products" class="btn btn-secondary btn-lg ms-2">Back to Products</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="review-section">
+            <h3 class="mb-4"><i class="fas fa-comments"></i> Reviews & Ratings</h3>
+
+            <% if (user) { %>
+                <!-- Review Form -->
+                <div class="review-form">
+                    <h5 class="mb-3">Write a Review</h5>
+                    <form id="reviewForm">
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="form-rating">
+                                <span class="star" data-value="1" onclick="setRating(1)"><i class="fas fa-star"></i></span>
+                                <span class="star" data-value="2" onclick="setRating(2)"><i class="fas fa-star"></i></span>
+                                <span class="star" data-value="3" onclick="setRating(3)"><i class="fas fa-star"></i></span>
+                                <span class="star" data-value="4" onclick="setRating(4)"><i class="fas fa-star"></i></span>
+                                <span class="star" data-value="5" onclick="setRating(5)"><i class="fas fa-star"></i></span>
+                            </div>
+                            <input type="hidden" id="rating" name="rating" value="0">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Review Title</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   placeholder="Sum up your experience" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="4" 
+                                      placeholder="Share your experience with this product" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Review
+                        </button>
+                    </form>
+                </div>
+            <% } else { %>
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle"></i> 
+                    <a href="/login">Login</a> to write a review
+                </div>
+            <% } %>
+
+            <!-- Reviews List -->
+            <div class="reviews-list">
+                <h5 class="mb-3">Customer Reviews</h5>
+                <div id="reviewsContainer">
+                    <!-- Reviews will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('includes/footer') %>
+
+    <script src="/js/main.js"></script>
+    <script>
+    const productId = '<%= product._id %>';
+    const userId = '<%= user ? user._id : "" %>';
+    let selectedRating = 0;
+
+    // Set rating
+    function setRating(value) {
+        selectedRating = value;
+        document.getElementById('rating').value = value;
+        
+        // Update star display
+        const stars = document.querySelectorAll('.form-rating .star');
+        stars.forEach((star, index) => {
+            if (index < value) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    // Load reviews
+    async function loadReviews() {
+        try {
+            const response = await fetch('/reviews/' + productId);
+            const data = await response.json();
+
+            const container = document.getElementById('reviewsContainer');
+            
+            if (!data.reviews || data.reviews.length === 0) {
+                container.innerHTML = '<div class="no-reviews">No reviews yet. Be the first to review!</div>';
+                return;
+            }
+
+            let html = '';
+            data.reviews.forEach(review => {
+                const date = new Date(review.createdAt).toLocaleDateString();
+                let stars = '';
+                for (let i = 0; i < review.rating; i++) {
+                    stars += '<i class="fas fa-star"></i>';
+                }
+                for (let i = review.rating; i < 5; i++) {
+                    stars += '<i class="far fa-star"></i>';
+                }
+                
+                let actionButtons = '';
+                if (userId && review.user && userId === review.user._id) {
+                    actionButtons = '<div class="mt-2">' +
+                        '<button class="btn btn-sm btn-warning edit-delete-btn" onclick="editReview(\'' + review._id + '\')">Edit</button> ' +
+                        '<button class="btn btn-sm btn-danger edit-delete-btn" onclick="deleteReview(\'' + review._id + '\')">Delete</button>' +
+                        '</div>';
+                }
+                
+                html += '<div class="review-card" id="review-' + review._id + '">' +
+                    '<div class="review-header">' +
+                    '<div>' +
+                    '<div class="reviewer-name">' + (review.user.username || 'Anonymous') + '</div>' +
+                    '<div class="review-date">' + date + '</div>' +
+                    '</div>' +
+                    '<div class="review-rating">' + stars + '</div>' +
+                    '</div>' +
+                    '<div class="review-title">' + review.title + '</div>' +
+                    '<div class="review-comment">' + review.comment + '</div>' +
+                    actionButtons +
+                    '</div>';
+            });
+            
+            container.innerHTML = html;
+        } catch (err) {
+            console.error('Error loading reviews:', err);
+            document.getElementById('reviewsContainer').innerHTML = '<div class="alert alert-danger">Error loading reviews</div>';
+        }
+    }
+
+    // Submit review
+    document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (selectedRating === 0) {
+            alert('❌ Please select a rating');
+            return;
+        }
+
+        const titleValue = document.getElementById('title').value.trim();
+        const commentValue = document.getElementById('comment').value.trim();
+
+        if (!titleValue || !commentValue) {
+            alert('❌ Please fill in all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('/reviews/' + productId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    title: titleValue,
+                    comment: commentValue
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Review submitted successfully!');
+                document.getElementById('reviewForm').reset();
+                setRating(0);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (err) {
+            console.error('Submission error:', err);
+            alert('❌ Network error: ' + err.message);
+        }
+    });
+
+    // Delete review
+    async function deleteReview(reviewId) {
+        if (!confirm('Are you sure you want to delete this review?')) return;
+
+        try {
+            const response = await fetch('/reviews/' + reviewId, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ Review deleted successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + data.message);
+            }
+        } catch (err) {
+            alert('❌ Error: ' + err.message);
+        }
+    }
+
+    // Edit review
+    function editReview(reviewId) {
+        alert('Edit functionality can be extended in the future.');
+    }
+
+    // Load reviews on page load
+    document.addEventListener('DOMContentLoaded', loadReviews);
+</script>
+</body>
+</html>
